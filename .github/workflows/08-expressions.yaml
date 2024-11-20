@@ -3,15 +3,15 @@ env:
   WORKFLOW_VAR: This is a workflow-level variable
   OVERWRITTEN: Default workflow value
 on:
-  pull_request:   
+  pull_request:
   workflow_dispatch:
     inputs:
       debug:
         type: boolean
-        default: false
+        default: true
       fail:
         type: boolean
-        default: false
+        default: true
 
 jobs:
   debug-check:
@@ -21,7 +21,7 @@ jobs:
       OVERWRITTEN: Overwritten at job level
     steps:
       - name: \[Debug\] Print Debug Info
-        if: ${{inputs.debug}}
+        if: ${{ inputs.debug == true }}
         run: |
           echo  "Triggered by: ${{ github.event_name }}" 
           echo  "Branch: ${{ github.ref }}" 
@@ -29,14 +29,14 @@ jobs:
           echo  "Runner OS: ${{ runner.os }}"
 
       - name: \[Debug\] Triggered from Main
-        if: ${{inputs.debug && github.ref_name == 'main' }}
+        if: ${{ inputs.debug && github.ref_name == 'main' }}
         run: |
           echo  "Triggered from main branch!"
 
       - name: Print Variables
         env:
           STEP_VAR: "Step-level variable"
-        if: ${{inputs.debug && github.ref_name == 'main' }}
+        if: ${{ inputs.debug && github.ref_name == 'main' }}
         run: |
           echo  "Step var: ${{ env.STEP_VAR }}" 
           echo "Job var: ${{ env.JOB_VAR }}" 
@@ -46,7 +46,7 @@ jobs:
       - name: Overwrite and Print
         env:
           OVERWRITTEN: Overwritten at step level.
-        if: ${{inputs.debug && github.ref_name == 'main' }}
+        if: ${{ inputs.debug && github.ref_name == 'main' }}
         run: |
           echo "Overwritten: ${{ env.OVERWRITTEN }}"
 
@@ -54,15 +54,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print PR Info
-        if: ${{github.event_name == 'pull_request'}}
+        if: ${{ github.event_name == 'pull_request'}}
         run: |
-          echo " ${{github.event.pull_request.title}}"
+          echo " ${{ github.event.pull_request.title}}"
           cat << EOF
               ${{ toJSON(github.event.pull_request.labels)}}
            EOF
 
       - name: Bug Check
-        if: ${{!cancelled() && contains(github.event.pull_request.title,'fix') }}
+        if: ${{ !cancelled() && contains(github.event.pull_request.title,'fix') }}
         run: |
           echo " This PR fixes a bug."
          
@@ -71,7 +71,7 @@ jobs:
           echo "sleep 20"
           
       - name: Failing Step      
-        if: ${{inputs.fail}}
+        if: ${{ inputs.fail }}
         run: |
           exit -1
 
@@ -94,3 +94,4 @@ jobs:
         if: cancelled()       
         run: |
           echo "Workflow cancelled"
+
